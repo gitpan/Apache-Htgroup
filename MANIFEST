@@ -1,5 +1,11 @@
-Htgroup.pm
 MANIFEST
-Makefile.PL
-test.pl
 README
+Htgroup.pm
+Makefile.PL
+
+t/00load.t
+t/01basic.t
+t/02scratch.t
+t/03add.t
+t/test.acl
+

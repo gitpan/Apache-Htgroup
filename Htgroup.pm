@@ -41,7 +41,7 @@ C<save> method.
 
 use strict;
 use vars qw($VERSION);
-$VERSION = qw($Revision: 1.11 $)[1];
+$VERSION = qw($Revision: 1.12 $)[1];
 
 =item load
 
@@ -151,7 +151,7 @@ sub reload {
      
 		     my ($group, $members) = split /:/,$line;
      
-               foreach my $user ( split /\s+/, $line ) {
+               foreach my $user ( split /\s+/, $members) {
                     $self->{groups}->{$group}->{$user} = 1;
                }
 	     }
@@ -247,10 +247,14 @@ Rich Bowen, rbowen@rcbowen.com
 =head1 HISTORY
 
      $Log: Htgroup.pm,v $
+     Revision 1.12  2001/02/23 03:16:58  rbowen
+     Fixed bug in reload that was effectively breaking everything else.
+     It would let you build files from scratch, but not load existing
+     files correctly. Added test suite also, which should help
+
      Revision 1.11  2001/02/21 03:14:04  rbowen
      Fixed reload to work as advertised. groups now calls reload internally
      the first time you call it.
-
 
      Version 0.9 -> 1.10 contains a number of important changes.
      As mentioned above, the API has changed, as well as the internal
