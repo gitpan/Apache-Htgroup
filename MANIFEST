@@ -1,6 +1,6 @@
 MANIFEST
 README
-Htgroup.pm
+lib/Apache/Htgroup.pm
 Makefile.PL
 LICENSE
 

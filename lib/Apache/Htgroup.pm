@@ -1,4 +1,4 @@
-#$Header: /home/cvs/apache-htgroup/Htgroup.pm,v 1.18 2001/08/02 02:47:23 rbowen Exp $
+#$Header: /home/cvs/apache-htgroup/lib/Apache/Htgroup.pm,v 1.20 2001/11/10 20:53:44 rbowen Exp $
 package Apache::Htgroup;
 
 =head1 NAME
@@ -23,24 +23,32 @@ that there is another module that does similar things
 (HTTPD::UserManage) and that this is a more simplistic module,
 not doing all the things that one does.
 
-=over 5
+=head2 METHODS
+
+The following methods are provided by this module.
 
 =cut
 
 use strict;
 use vars qw($VERSION);
-$VERSION = (qw($Revision: 1.18 $))[1];
+$VERSION = (qw($Revision: 1.20 $))[1];
 
-=item load
+# sub new, load {{{
 
-	$htgroup = Apache::Htgroup->load($path_to_groupfile);
-    $htgroup = Apache::Htgroup->new();
+=head2 load
+
+    $htgroup = Apache::Htgroup->load($path_to_groupfile);
 
 Returns an Apache::Htgroup object.
 
-Calling C<new()> without an argument creates an empty
-htgroup object which you can save to a file once you're
-done with it.
+=head2 new
+
+    $htgroup = Apache::Htgroup->new();
+    $htgroup = Apache::Htgroup->new( $path_to_groupfile );
+
+Creates a new, empty group file. If the specified file already exists,
+loads the contents of that file. If no filename is specified, you can
+create a group file in memory, and save it later.
 
 =cut
 
@@ -56,9 +64,13 @@ sub load {
     return $self;
 }
 
-=item adduser
+#}}}
 
-	$htgroup->adduser( $username, $group );
+# sub adduser {{{
+
+=head2 adduser
+
+    $htgroup->adduser( $username, $group );
 
 Adds the specified user to the specified group.
 
@@ -74,9 +86,13 @@ sub adduser {
     return (1);
 }
 
-=item deleteuser
+#}}}
 
-	$htgroup->deleteuser($user, $group);
+# sub deleteuser {{{
+
+=head2 deleteuser
+
+    $htgroup->deleteuser($user, $group);
 
 Removes the specified user from the group.
 
@@ -88,11 +104,13 @@ sub deleteuser {
 
     delete $self->{groups}->{$group}->{$user};
     return (1);
-}
+} # }}}
 
-=item groups
+# sub groups {{{
 
-	$groups = $htgroup->groups;
+=head2 groups
+
+    $groups = $htgroup->groups;
 
 Returns a (reference to a) hash of the groups. The key is the name
 of the group. Each value is a hashref, the keys of which are the
@@ -115,9 +133,11 @@ sub groups {
     $self->reload;
 
     return $self->{groups};
-}
+} # }}}
 
-=item reload
+# sub reload {{{
+
+=head2 reload
 
      $self->reload;
 
@@ -148,12 +168,14 @@ sub reload {
       } else {
         $self->{groups} = {};
     }
-}
+} # }}}
 
-=item save
+# sub save {{{
 
-	$htgroup->save;
-     $htgroup->save($file);
+=head2 save
+
+    $htgroup->save;
+    $htgroup->save($file);
 
 Writes the current contents of the htgroup object back to the
 file. If you provide a $file argument, C<save> will attempt to
@@ -184,11 +206,13 @@ sub save {
     close FILE;
 
     return (1);
-}
+} # }}}
 
-=item ismember
+# sub ismember {{{
 
-	$foo = $htgroup->ismember($user, $group);
+=head2 ismember
+
+    $foo = $htgroup->ismember($user, $group);
 
 Returns true if the username is in the group, false otherwise
 
@@ -198,9 +222,11 @@ sub ismember {
     my ( $user, $group ) = @_;
 
     return ( $self->{groups}->{$group}->{$user} ) ? 1 : 0;
-}
+} # }}}
 
 1;
+
+# Documentation {{{
 
 =head1 Internals
 
@@ -242,9 +268,23 @@ it and/or modify it under the same terms as Perl itself.
 The full text of the license can be found in the
 LICENSE file included with this module.
 
+=cut 
+
+# }}}
+
+# CVS history {{{
+
 =head1 HISTORY
 
      $Log: Htgroup.pm,v $
+     Revision 1.20  2001/11/10 20:53:44  rbowen
+     Moved Htgroup to lib subdir. Appropriate changesin MANIFEST,
+     Makefile.PL. Updated README.
+
+     Revision 1.19  2001/11/10 20:45:15  rbowen
+     Moved it to the lib subdirectory, and added some code folds. No
+     functional code change.
+
      Revision 1.18  2001/08/02 02:47:23  rbowen
      Added LICENSE.
 
@@ -282,3 +322,6 @@ LICENSE file included with this module.
      data structure. Please read the documentation very carefully.
 
 =cut
+
+#}}}
+

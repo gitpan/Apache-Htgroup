@@ -3,7 +3,7 @@ use ExtUtils::MakeMaker;
 # the contents of the Makefile that is written.
 WriteMakefile(
     NAME	     => 'Apache::Htgroup',
-    VERSION_FROM => 'Htgroup.pm', # finds $VERSION
-    AUTHOR       => 'Rich Bowen (rbowen@rcbowencom)',
+    VERSION_FROM => 'lib/Apache/Htgroup.pm', # finds $VERSION
+    AUTHOR       => 'Rich Bowen (rbowen@rcbowen.com)',
     ABSTRACT     => 'Manage Apache htgroup files'
 );
