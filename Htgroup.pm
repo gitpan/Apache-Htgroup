@@ -41,7 +41,7 @@ C<save> method.
 
 use strict;
 use vars qw($VERSION);
-$VERSION = qw($Revision: 1.12 $)[1];
+$VERSION = ( qw($Revision: 1.14 $) )[1];
 
 =item load
 
@@ -149,7 +149,7 @@ sub reload {
 	     while (my $line = <FILE>)	{
 		     chomp $line;
      
-		     my ($group, $members) = split /:/,$line;
+		     my ($group, $members) = split /:\s*/,$line;
      
                foreach my $user ( split /\s+/, $members) {
                     $self->{groups}->{$group}->{$user} = 1;
@@ -182,7 +182,7 @@ sub save {
 
      foreach my $group ( keys %{$self->{groups}} )   {
           my $members = join ' ', keys %{$self->{groups}->{$group}};
-		print FILE "$group:$members\n";
+		print FILE "$group: $members\n";
 	}
 	close FILE;
 
@@ -247,6 +247,13 @@ Rich Bowen, rbowen@rcbowen.com
 =head1 HISTORY
 
      $Log: Htgroup.pm,v $
+     Revision 1.14  2001/02/24 21:27:50  rbowen
+     Added space between "group:" and the first user, as per the documentation.
+
+     Revision 1.13  2001/02/23 04:13:12  rbowen
+     Apparently Perl 5.005_02 was getting grumpy about my use of $Revision: 1.14 $
+     to set the VERSION number. Fixed.
+
      Revision 1.12  2001/02/23 03:16:58  rbowen
      Fixed bug in reload that was effectively breaking everything else.
      It would let you build files from scratch, but not load existing
