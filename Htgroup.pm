@@ -1,4 +1,4 @@
-#$Header: /home/cvs/apache-htgroup/Htgroup.pm,v 1.16 2001/07/12 02:19:58 rbowen Exp $
+#$Header: /home/cvs/apache-htgroup/Htgroup.pm,v 1.17 2001/07/12 02:37:18 rbowen Exp $
 package Apache::Htgroup;
 
 =head1 NAME
@@ -23,22 +23,18 @@ that there is another module that does similar things
 (HTTPD::UserManage) and that this is a more simplistic module,
 not doing all the things that one does.
 
-Please also note that, in contrast to Version 0.9, changes
-to the object are only saved to disk when you call the
-C<save> method.
-
 =over 5
 
 =cut
 
 use strict;
 use vars qw($VERSION);
-$VERSION = (qw($Revision: 1.16 $))[1];
+$VERSION = (qw($Revision: 1.17 $))[1];
 
 =item load
 
 	$htgroup = Apache::Htgroup->load($path_to_groupfile);
-     $htgroup = Apache::Htgroup->new();
+    $htgroup = Apache::Htgroup->new();
 
 Returns an Apache::Htgroup object.
 
@@ -141,7 +137,7 @@ sub reload {
         while ( my $line = <FILE> ) {
             chomp $line;
 
-            my ( $group, $members ) = split /:\s*/, $line;
+            my ( $group, $members ) = split /:\s*/, $line, 2;
 
             foreach my $user( split /\s+/, $members ) {
                 $self->{groups}->{$group}->{$user} = 1;
@@ -172,8 +168,18 @@ sub save {
     open( FILE, ">$file" ) || die ("Was unable to open $file for writing: $!");
 
     foreach my $group( keys %{ $self->{groups} } ) {
-        my $members = join ' ', keys %{ $self->{groups}->{$group} };
-        print FILE "$group: $members\n";
+
+        # Work around the fact that Apache can't handle lines
+        # over 8K.
+        my @members = keys %{ $self->{groups}->{$group} };
+        while (@members) {
+            my $out = "$group:";
+            while (@members) {
+                $out .= " " . shift (@members);
+                last if 7500 < length($out);
+            }
+            print FILE $out, "\n";
+        }
     }
     close FILE;
 
@@ -187,7 +193,6 @@ sub save {
 Returns true if the username is in the group, false otherwise
 
 =cut
-
 sub ismember {
     my $self = shift;
     my ( $user, $group ) = @_;
@@ -236,6 +241,12 @@ Rich Bowen, rbowen@rcbowen.com
 =head1 HISTORY
 
      $Log: Htgroup.pm,v $
+     Revision 1.17  2001/07/12 02:37:18  rbowen
+     Patch from Ben Tilly in order to compensate for the fact that Apache
+     does not like group lists that run over 8k, but is ok with breaking a
+     group listing over several lines. Long lines are split over several
+     lines.
+
      Revision 1.16  2001/07/12 02:19:58  rbowen
      Doc changes. Regenerated README. Removed test.pl since there's a
      decent test suite.

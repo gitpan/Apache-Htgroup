@@ -17,12 +17,9 @@ DESCRIPTION
     that this is a more simplistic module, not doing all the things that one
     does.
 
-    Please also note that, in contrast to Version 0.9, changes to the object
-    are only saved to disk when you call the "save" method.
-
     load
                  $htgroup = Apache::Htgroup->load($path_to_groupfile);
-              $htgroup = Apache::Htgroup->new();
+             $htgroup = Apache::Htgroup->new();
 
          Returns an Apache::Htgroup object.
 
@@ -106,8 +103,14 @@ AUTHOR
          Rich Bowen, rbowen@rcbowen.com
 
 HISTORY
-              $Log: README,v $
-              Revision 1.7  2001/07/12 02:19:58  rbowen
+              $Log: Htgroup.pm,v $
+              Revision 1.17  2001/07/12 02:37:18  rbowen
+              Patch from Ben Tilly in order to compensate for the fact that Apache
+              does not like group lists that run over 8k, but is ok with breaking a
+              group listing over several lines. Long lines are split over several
+              lines.
+
+              Revision 1.16  2001/07/12 02:19:58  rbowen
               Doc changes. Regenerated README. Removed test.pl since there's a
               decent test suite.
 
