@@ -1,3 +1,4 @@
+#$Header: /home/cvs/apache-htgroup/Htgroup.pm,v 1.16 2001/07/12 02:19:58 rbowen Exp $
 package Apache::Htgroup;
 
 =head1 NAME
@@ -12,15 +13,6 @@ Apache::Htgroup - Manage Apache authentication group files
   $htgroup->adduser($user, $group);
   $htgroup->deleteuser($user, $group);
   $htgroup->save;
-
-=head1 Important notes about versions 1.x
-
-There has been a change to the API since the 0.9 version. The 0.9
-version sucked a lot, and this should be a big improvement in a
-lot of ways. Please feel free to contact me and yell at me about
-these changes if you like. If there are enough complaints, I'll
-try to make it backward compatible. However, given a little work,
-I think you'll find the new version superior in every way.
 
 =head1 DESCRIPTION
 
@@ -41,7 +33,7 @@ C<save> method.
 
 use strict;
 use vars qw($VERSION);
-$VERSION = ( qw($Revision: 1.14 $) )[1];
+$VERSION = (qw($Revision: 1.16 $))[1];
 
 =item load
 
@@ -56,16 +48,16 @@ done with it.
 
 =cut
 
-sub new {return load(@_)}
+sub new { return load(@_) }
 
 sub load {
-	my ($class, $file) = @_;
-     my $self = bless {
-          groupfile => $file,
-          }, $class;
-     $self->groups;
+    my ( $class, $file ) = @_;
+    my $self = bless {
+        groupfile => $file,
+    }, $class;
+    $self->groups;
 
-	return $self;
+    return $self;
 }
 
 =item adduser
@@ -76,15 +68,15 @@ Adds the specified user to the specified group.
 
 =cut
 
-sub adduser	{
-     my $self = shift;
-     my ( $user, $group ) = @_;
+sub adduser {
+    my $self = shift;
+    my ( $user, $group ) = @_;
 
-	return(1) if $self->ismember($user, $group);
-     $self->{groups}->{$group}->{$user} = 1;
+    return (1) if $self->ismember( $user, $group );
+    $self->{groups}->{$group}->{$user} = 1;
 
-	return(1);
-} 
+    return (1);
+}
 
 =item deleteuser
 
@@ -94,12 +86,12 @@ Removes the specified user from the group.
 
 =cut
 
-sub deleteuser	{
-     my $self = shift;
-     my ($user, $group) = @_;
+sub deleteuser {
+    my $self = shift;
+    my ( $user, $group ) = @_;
 
-     delete $self->{groups}->{$group}->{$user};
-	return(1);
+    delete $self->{groups}->{$group}->{$user};
+    return (1);
 }
 
 =item groups
@@ -120,13 +112,13 @@ of the data structure.
 =cut
 
 sub groups {
-	my $self = shift;
+    my $self = shift;
 
-     return $self->{groups} if defined $self->{groups};
+    return $self->{groups} if defined $self->{groups};
 
-     $self->reload;
+    $self->reload;
 
-	return $self->{groups};
+    return $self->{groups};
 }
 
 =item reload
@@ -140,26 +132,26 @@ the original file.
 =cut
 
 sub reload {
-     my $self = shift;
+    my $self = shift;
 
-     if ($self->{groupfile})   {
-	
-          open (FILE, $self->{groupfile}) || die (
-               "Was unable to open group file $self->{groupfile}: $!" );
-	     while (my $line = <FILE>)	{
-		     chomp $line;
-     
-		     my ($group, $members) = split /:\s*/,$line;
-     
-               foreach my $user ( split /\s+/, $members) {
-                    $self->{groups}->{$group}->{$user} = 1;
-               }
-	     }
-          close FILE;
+    if ( $self->{groupfile} ) {
 
-     } else {
-          $self->{groups} = {};
-     }
+        open( FILE, $self->{groupfile} )
+          || die ("Was unable to open group file $self->{groupfile}: $!");
+        while ( my $line = <FILE> ) {
+            chomp $line;
+
+            my ( $group, $members ) = split /:\s*/, $line;
+
+            foreach my $user( split /\s+/, $members ) {
+                $self->{groups}->{$group}->{$user} = 1;
+            }
+        }
+        close FILE;
+
+      } else {
+        $self->{groups} = {};
+    }
 }
 
 =item save
@@ -174,19 +166,18 @@ write to that location.
 =cut
 
 sub save {
-     my $self = shift;
-     my $file = shift || $self->{groupfile};
+    my $self = shift;
+    my $file = shift || $self->{groupfile};
 
-	open (FILE, ">$file") || 
-          die ("Was unable to open $file for writing: $!");
+    open( FILE, ">$file" ) || die ("Was unable to open $file for writing: $!");
 
-     foreach my $group ( keys %{$self->{groups}} )   {
-          my $members = join ' ', keys %{$self->{groups}->{$group}};
-		print FILE "$group: $members\n";
-	}
-	close FILE;
+    foreach my $group( keys %{ $self->{groups} } ) {
+        my $members = join ' ', keys %{ $self->{groups}->{$group} };
+        print FILE "$group: $members\n";
+    }
+    close FILE;
 
-	return(1);
+    return (1);
 }
 
 =item ismember
@@ -197,16 +188,14 @@ Returns true if the username is in the group, false otherwise
 
 =cut
 
-sub ismember	{
-     my $self = shift;
-	my ($user, $group) = @_;
+sub ismember {
+    my $self = shift;
+    my ( $user, $group ) = @_;
 
-     return ($self->{groups}->{$group}->{$user}) ?  1 : 0 ;
+    return ( $self->{groups}->{$group}->{$user} ) ? 1 : 0;
 }
 
 1;
-
-=cut
 
 =head1 Internals
 
@@ -247,11 +236,18 @@ Rich Bowen, rbowen@rcbowen.com
 =head1 HISTORY
 
      $Log: Htgroup.pm,v $
+     Revision 1.16  2001/07/12 02:19:58  rbowen
+     Doc changes. Regenerated README. Removed test.pl since there's a
+     decent test suite.
+
+     Revision 1.15  2001/07/12 02:15:01  rbowen
+     Perltidy
+
      Revision 1.14  2001/02/24 21:27:50  rbowen
      Added space between "group:" and the first user, as per the documentation.
 
      Revision 1.13  2001/02/23 04:13:12  rbowen
-     Apparently Perl 5.005_02 was getting grumpy about my use of $Revision: 1.14 $
+     Apparently Perl 5.005_02 was getting grumpy about my use of Revision
      to set the VERSION number. Fixed.
 
      Revision 1.12  2001/02/23 03:16:58  rbowen
