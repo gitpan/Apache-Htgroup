@@ -1,207 +1,123 @@
-<HTML>
-<HEAD>
-<TITLE>Apache::Htgroup - Manage Apache authentication group files</TITLE>
-<LINK REV="made" HREF="mailto:rbowen@rcbowen.com">
-</HEAD>
+NAME
+    Apache::Htgroup - Manage Apache authentication group files
 
-<BODY>
+SYNOPSIS
+      use Apache::Htgroup;
+      $htgroup = Apache::Htgroup->load($path_to_groupfile);
+      &do_something if $htgroup->ismember($user, $group);
+      $htgroup->adduser($user, $group);
+      $htgroup->deleteuser($user, $group);
+      $htgroup->save;
 
-<A NAME="__index__"></A>
-<!-- INDEX BEGIN -->
+DESCRIPTION
+    Manage Apache htgroup files
 
-<UL>
+    Please note that this is *not* a mod_perl module. Please also note that
+    there is another module that does similar things (HTTPD::UserManage) and
+    that this is a more simplistic module, not doing all the things that one
+    does.
 
-	<LI><A HREF="#name">NAME</A></LI>
-	<LI><A HREF="#synopsis">SYNOPSIS</A></LI>
-	<LI><A HREF="#description">DESCRIPTION</A></LI>
-	<UL>
+  METHODS
 
-		<LI><A HREF="#methods">METHODS</A></LI>
-		<LI><A HREF="#load">load</A></LI>
-		<LI><A HREF="#new">new</A></LI>
-		<LI><A HREF="#adduser">adduser</A></LI>
-		<LI><A HREF="#deleteuser">deleteuser</A></LI>
-		<LI><A HREF="#groups">groups</A></LI>
-		<LI><A HREF="#reload">reload</A></LI>
-		<LI><A HREF="#save">save</A></LI>
-		<LI><A HREF="#ismember">ismember</A></LI>
-	</UL>
+    The following methods are provided by this module.
 
-	<LI><A HREF="#internals">Internals</A></LI>
-	<LI><A HREF="#adding groups">Adding groups</A></LI>
-	<LI><A HREF="#author">AUTHOR</A></LI>
-	<LI><A HREF="#copyright">COPYRIGHT</A></LI>
-	<LI><A HREF="#history">HISTORY</A></LI>
-</UL>
-<!-- INDEX END -->
+  load
 
-<HR>
-<P>
-<H1><A NAME="name">NAME</A></H1>
-<P>Apache::Htgroup - Manage Apache authentication group files</P>
-<P>
-<HR>
-<H1><A NAME="synopsis">SYNOPSIS</A></H1>
-<PRE>
-  use Apache::Htgroup;
-  $htgroup = Apache::Htgroup-&gt;load($path_to_groupfile);
-  &amp;do_something if $htgroup-&gt;ismember($user, $group);
-  $htgroup-&gt;adduser($user, $group);
-  $htgroup-&gt;deleteuser($user, $group);
-  $htgroup-&gt;save;</PRE>
-<P>
-<HR>
-<H1><A NAME="description">DESCRIPTION</A></H1>
-<P>Manage Apache htgroup files</P>
-<P>Please note that this is <EM>not</EM> a mod_perl module. Please also note
-that there is another module that does similar things
-(HTTPD::UserManage) and that this is a more simplistic module,
-not doing all the things that one does.</P>
-<P>
-<H2><A NAME="methods">METHODS</A></H2>
-<P>The following methods are provided by this module.</P>
-<P>
-<H2><A NAME="load">load</A></H2>
-<PRE>
-    $htgroup = Apache::Htgroup-&gt;load($path_to_groupfile);</PRE>
-<P>Returns an Apache::Htgroup object.</P>
-<P>
-<H2><A NAME="new">new</A></H2>
-<PRE>
-    $htgroup = Apache::Htgroup-&gt;new();
-    $htgroup = Apache::Htgroup-&gt;new( $path_to_groupfile );</PRE>
-<P>Creates a new, empty group file. If the specified file already exists,
-loads the contents of that file. If no filename is specified, you can
-create a group file in memory, and save it later.</P>
-<P>
-<H2><A NAME="adduser">adduser</A></H2>
-<PRE>
-    $htgroup-&gt;adduser( $username, $group );</PRE>
-<P>Adds the specified user to the specified group.</P>
-<P>
-<H2><A NAME="deleteuser">deleteuser</A></H2>
-<PRE>
-    $htgroup-&gt;deleteuser($user, $group);</PRE>
-<P>Removes the specified user from the group.</P>
-<P>
-<H2><A NAME="groups">groups</A></H2>
-<PRE>
-    $groups = $htgroup-&gt;groups;</PRE>
-<P>Returns a (reference to a) hash of the groups. The key is the name
-of the group. Each value is a hashref, the keys of which are the
-group members. I suppose there may be some variety of members
-method in the future, if anyone thinks that would be useful.</P>
-<P>It is expected that this method will not be called directly, and
-it is provided as a convenience only.</P>
-<P>Please see the section below about internals for an example
-of the data structure.</P>
-<P>
-<H2><A NAME="reload">reload</A></H2>
-<PRE>
-     $self-&gt;reload;</PRE>
-<P>If you have not already called save(), you can call <CODE>reload()</CODE>
-and get back to the state of the object as it was loaded from
-the original file.</P>
-<P>
-<H2><A NAME="save">save</A></H2>
-<PRE>
-    $htgroup-&gt;save;
-    $htgroup-&gt;save($file);</PRE>
-<P>Writes the current contents of the htgroup object back to the
-file. If you provide a $file argument, <CODE>save</CODE> will attempt to
-write to that location.</P>
-<P>
-<H2><A NAME="ismember">ismember</A></H2>
-<PRE>
-    $foo = $htgroup-&gt;ismember($user, $group);</PRE>
-<P>Returns true if the username is in the group, false otherwise</P>
-<P>
-<HR>
-<H1><A NAME="internals">Internals</A></H1>
-<P>Although this was not the case in earlier versions, the internal
-data structure of the object looks something like the following:</P>
-<PRE>
- $obj = { groupfile =&gt; '/path/to/groupfile',
-          groups =&gt; { group1 =&gt; { 'user1' =&gt; 1,
-                                  'user2' =&gt; 1, 
-                                  'user3' =&gt; 1
-                                },
-                      group2 =&gt; { 'usera' =&gt; 1,
-                                  'userb' =&gt; 1, 
-                                  'userc' =&gt; 1
-                                },
-                    }
-        };</PRE>
-<P>Note that this data structure is subject to change in the future,
-and is provided mostly so that I can remember what the heck I was
-thinking when I next have to look at this code.</P>
-<P>
-<HR>
-<H1><A NAME="adding groups">Adding groups</A></H1>
-<P>A number of folks have asked for a method to add a new group. This
-is unnecessary. To add a new group, just start adding users to 
-a new group, and the new group will magically spring into existance.</P>
-<P>
-<HR>
-<H1><A NAME="author">AUTHOR</A></H1>
-<P>Rich Bowen, <A HREF="mailto:rbowen@rcbowen.com">rbowen@rcbowen.com</A></P>
-<P>
-<HR>
-<H1><A NAME="copyright">COPYRIGHT</A></H1>
-<P>Copyright (c) 2001 Rich Bowen. All rights reserved.
-This program is free software; you can redistribute
-it and/or modify it under the same terms as Perl itself.</P>
-<P>The full text of the license can be found in the
-LICENSE file included with this module.</P>
-<P>
-<HR>
-<H1><A NAME="history">HISTORY</A></H1>
-<PRE>
-     $Log: README,v $
-     Revision 1.9  2001/11/10 20:53:44  rbowen
-     Moved Htgroup to lib subdir. Appropriate changesin MANIFEST,
-     Makefile.PL. Updated README.
+        $htgroup = Apache::Htgroup->load($path_to_groupfile);
 
-     Revision 1.19  2001/11/10 20:45:15  rbowen
-     Moved it to the lib subdirectory, and added some code folds. No
-     functional code change.</PRE>
-<PRE>
-     Revision 1.18  2001/08/02 02:47:23  rbowen
-     Added LICENSE.</PRE>
-<PRE>
-     Revision 1.17  2001/07/12 02:37:18  rbowen
-     Patch from Ben Tilly in order to compensate for the fact that Apache
-     does not like group lists that run over 8k, but is ok with breaking a
-     group listing over several lines. Long lines are split over several
-     lines.</PRE>
-<PRE>
-     Revision 1.16  2001/07/12 02:19:58  rbowen
-     Doc changes. Regenerated README. Removed test.pl since there's a
-     decent test suite.</PRE>
-<PRE>
-     Revision 1.15  2001/07/12 02:15:01  rbowen
-     Perltidy</PRE>
-<PRE>
-     Revision 1.14  2001/02/24 21:27:50  rbowen
-     Added space between &quot;group:&quot; and the first user, as per the documentation.</PRE>
-<PRE>
-     Revision 1.13  2001/02/23 04:13:12  rbowen
-     Apparently Perl 5.005_02 was getting grumpy about my use of Revision
-     to set the VERSION number. Fixed.</PRE>
-<PRE>
-     Revision 1.12  2001/02/23 03:16:58  rbowen
-     Fixed bug in reload that was effectively breaking everything else.
-     It would let you build files from scratch, but not load existing
-     files correctly. Added test suite also, which should help</PRE>
-<PRE>
-     Revision 1.11  2001/02/21 03:14:04  rbowen
-     Fixed reload to work as advertised. groups now calls reload internally
-     the first time you call it.</PRE>
-<PRE>
-     Version 0.9 -&gt; 1.10 contains a number of important changes.
-     As mentioned above, the API has changed, as well as the internal
-     data structure. Please read the documentation very carefully.</PRE>
+    Returns an Apache::Htgroup object.
 
-</BODY>
+  new
 
-</HTML>
+        $htgroup = Apache::Htgroup->new();
+        $htgroup = Apache::Htgroup->new( $path_to_groupfile );
+
+    Creates a new, empty group file. If the specified file already exists,
+    loads the contents of that file. If no filename is specified, you can
+    create a group file in memory, and save it later.
+
+  adduser
+
+        $htgroup->adduser( $username, $group );
+
+    Adds the specified user to the specified group.
+
+  deleteuser
+
+        $htgroup->deleteuser($user, $group);
+
+    Removes the specified user from the group.
+
+  groups
+
+        $groups = $htgroup->groups;
+
+    Returns a (reference to a) hash of the groups. The key is the name of
+    the group. Each value is a hashref, the keys of which are the group
+    members. I suppose there may be some variety of members method in the
+    future, if anyone thinks that would be useful.
+
+    It is expected that this method will not be called directly, and it is
+    provided as a convenience only.
+
+    Please see the section below about internals for an example of the data
+    structure.
+
+  reload
+
+         $self->reload;
+
+    If you have not already called save(), you can call reload() and get
+    back to the state of the object as it was loaded from the original file.
+
+  save
+
+        $htgroup->save;
+        $htgroup->save($file);
+
+    Writes the current contents of the htgroup object back to the file. If
+    you provide a $file argument, "save" will attempt to write to that
+    location.
+
+  ismember
+
+        $foo = $htgroup->ismember($user, $group);
+
+    Returns true if the username is in the group, false otherwise
+
+Internals
+    Although this was not the case in earlier versions, the internal data
+    structure of the object looks something like the following:
+
+     $obj = { groupfile => '/path/to/groupfile',
+              groups => { group1 => { 'user1' => 1,
+                                      'user2' => 1, 
+                                      'user3' => 1
+                                    },
+                          group2 => { 'usera' => 1,
+                                      'userb' => 1, 
+                                      'userc' => 1
+                                    },
+                        }
+            };
+
+    Note that this data structure is subject to change in the future, and is
+    provided mostly so that I can remember what the heck I was thinking when
+    I next have to look at this code.
+
+Adding groups
+    A number of folks have asked for a method to add a new group. This is
+    unnecessary. To add a new group, just start adding users to a new group,
+    and the new group will magically spring into existance.
+
+AUTHOR
+    Rich Bowen, rbowen@rcbowen.com
+
+COPYRIGHT
+    Copyright (c) 2001 Rich Bowen. All rights reserved. This program is free
+    software; you can redistribute it and/or modify it under the same terms
+    as Perl itself.
+
+    The full text of the license can be found in the LICENSE file included
+    with this module.
+

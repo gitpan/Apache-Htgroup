@@ -1,4 +1,4 @@
-#$Header: /home/cvs/apache-htgroup/lib/Apache/Htgroup.pm,v 1.20 2001/11/10 20:53:44 rbowen Exp $
+#$Header: /home/cvs/apache-htgroup/lib/Apache/Htgroup.pm,v 1.22 2002/01/27 16:04:34 rbowen Exp $
 package Apache::Htgroup;
 
 =head1 NAME
@@ -31,7 +31,7 @@ The following methods are provided by this module.
 
 use strict;
 use vars qw($VERSION);
-$VERSION = (qw($Revision: 1.20 $))[1];
+$VERSION = (qw($Revision: 1.22 $))[1];
 
 # sub new, load {{{
 
@@ -157,8 +157,19 @@ sub reload {
         while ( my $line = <FILE> ) {
             chomp $line;
 
-            my ( $group, $members ) = split /:\s*/, $line, 2;
+            #
+            # Allow for multiple spaces after the colon.
+            # Allow for groups with no users.
+            $line =~ /^([^:]+):(\s+)?(.*)?/;
+            my $group   = $1;
+            my $members = $3;
 
+            #
+            # Make sure we keep empty groups
+            if(!defined($self->{groups}->{$group}))
+            {
+                $self->{groups}->{$group} = { };
+          }
             foreach my $user( split /\s+/, $members ) {
                 $self->{groups}->{$group}->{$user} = 1;
             }
@@ -186,6 +197,8 @@ write to that location.
 sub save {
     my $self = shift;
     my $file = shift || $self->{groupfile};
+    my $out;
+    my @members;
 
     open( FILE, ">$file" ) || die ("Was unable to open $file for writing: $!");
 
@@ -193,9 +206,12 @@ sub save {
 
         # Work around the fact that Apache can't handle lines
         # over 8K.
-        my @members = keys %{ $self->{groups}->{$group} };
+        @members = keys %{ $self->{groups}->{$group} };
+      if(!@members) {
+              print FILE "${group}: \n";
+      }
         while (@members) {
-            my $out = "$group:";
+            $out = "$group:";
             while (@members) {
                 $out .= " " . shift (@members);
                 last if 7500 < length($out);
@@ -271,57 +287,4 @@ LICENSE file included with this module.
 =cut 
 
 # }}}
-
-# CVS history {{{
-
-=head1 HISTORY
-
-     $Log: Htgroup.pm,v $
-     Revision 1.20  2001/11/10 20:53:44  rbowen
-     Moved Htgroup to lib subdir. Appropriate changesin MANIFEST,
-     Makefile.PL. Updated README.
-
-     Revision 1.19  2001/11/10 20:45:15  rbowen
-     Moved it to the lib subdirectory, and added some code folds. No
-     functional code change.
-
-     Revision 1.18  2001/08/02 02:47:23  rbowen
-     Added LICENSE.
-
-     Revision 1.17  2001/07/12 02:37:18  rbowen
-     Patch from Ben Tilly in order to compensate for the fact that Apache
-     does not like group lists that run over 8k, but is ok with breaking a
-     group listing over several lines. Long lines are split over several
-     lines.
-
-     Revision 1.16  2001/07/12 02:19:58  rbowen
-     Doc changes. Regenerated README. Removed test.pl since there's a
-     decent test suite.
-
-     Revision 1.15  2001/07/12 02:15:01  rbowen
-     Perltidy
-
-     Revision 1.14  2001/02/24 21:27:50  rbowen
-     Added space between "group:" and the first user, as per the documentation.
-
-     Revision 1.13  2001/02/23 04:13:12  rbowen
-     Apparently Perl 5.005_02 was getting grumpy about my use of Revision
-     to set the VERSION number. Fixed.
-
-     Revision 1.12  2001/02/23 03:16:58  rbowen
-     Fixed bug in reload that was effectively breaking everything else.
-     It would let you build files from scratch, but not load existing
-     files correctly. Added test suite also, which should help
-
-     Revision 1.11  2001/02/21 03:14:04  rbowen
-     Fixed reload to work as advertised. groups now calls reload internally
-     the first time you call it.
-
-     Version 0.9 -> 1.10 contains a number of important changes.
-     As mentioned above, the API has changed, as well as the internal
-     data structure. Please read the documentation very carefully.
-
-=cut
-
-#}}}
 

@@ -3,6 +3,7 @@ README
 lib/Apache/Htgroup.pm
 Makefile.PL
 LICENSE
+ChangeLog
 
 t/00load.t
 t/01basic.t
