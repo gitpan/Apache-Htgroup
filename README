@@ -3,63 +3,124 @@ NAME
 
 SYNOPSIS
       use Apache::Htgroup;
-      $group = new Apache::Htgroup ($path_to_groupfile);
-      $foo = $group->isMember($username);
-      $group->addUser($username);
-      $group->deleteUser($username);
+      $htgroup = Apache::Htgroup->load($path_to_groupfile);
+      &do_something if $htgroup->ismember($user, $group);
+      $htgroup->adduser($user, $group);
+      $htgroup->deleteuser($user, $group);
+      $htgroup->save;
+
+Important notes about versions 1.x
+    There has been a change to the API since the 0.9 version. The 0.9
+    version sucked a lot, and this should be a big improvement in a lot of
+    ways. Please feel free to contact me and yell at me about these changes
+    if you like. If there are enough complaints, I'll try to make it
+    backward compatible. However, given a little work, I think you'll find
+    the new version superior in every way.
 
 DESCRIPTION
     Manage Apache htgroup files
 
-    new  $group = new Apache::Htgroup ($path_to_groupfile);
+    Please note that this is *not* a mod_perl module. Please also note that
+    there is another module that does similar things (HTTPD::UserManage) and
+    that this is a more simplistic module, not doing all the things that one
+    does.
 
-         Creates a new object of the Apache::Htgroup class
+    Please also note that, in contrast to Version 0.9, changes to the object
+    are only saved to disk when you call the "save" method.
 
-    isMember
-                 $foo = $group->isMember($username);
+    load
+                 $htgroup = Apache::Htgroup->load($path_to_groupfile);
+              $htgroup = Apache::Htgroup->new();
 
-         Returns true if the username is in the group, false
-         otherwise
+         Returns an Apache::Htgroup object.
 
-    addUser
-                 $group->addUser($username);
+         Calling "new()" without an argument creates an empty htgroup object
+         which you can save to a file once you're done with it.
 
-         Adds the user to the group.
+    adduser
+                 $htgroup->adduser( $username, $group );
 
-    deleteUser
-                 $group->deleteUser($username);
+         Adds the specified user to the specified group.
+
+    deleteuser
+                 $htgroup->deleteuser($user, $group);
 
          Removes the specified user from the group.
 
     groups
-                 $groups = $group->groups;
+                 $groups = $htgroup->groups;
 
-         Returns a reference to a hash of the groups. The key is the
-         name of the group, and the value is a string containing all
-         the users separated by spaces - exactly as it appears in
-         the group file.
+         Returns a (reference to a) hash of the groups. The key is the name
+         of the group. Each value is a hashref, the keys of which are the
+         group members. I suppose there may be some variety of members
+         method in the future, if anyone thinks that would be useful.
 
-    writeFile
-                 $group->writeFile($groups);
+         It is expected that this method will not be called directly, and it
+         is provided as a convenience only.
 
-         Writes out the group file. $groups is a hashref that looks
-         like the hash returned by the `groups' method.
+         Please see the section below about internals for an example of the
+         data structure.
 
-Bugs/To do/Disclaimer
-    I wrote this in a real hurry. I knew that it would save time in
-    the long run if I wrote this as a module, but I did not have the
-    time to put in all the doodads that really belong in here.
+    reload
+              $self->reload;
 
-    I really need to have some file locking here, but this is a rush
-    job. I'll add this some time soon.
+         If you have not already called save(), you can call reload() and
+         get back to the state of the object as it was loaded from the
+         original file.
 
-    Need to have reasonable return values on failure. I'll add this
-    when I'm in less of a hurry.
+    save
+                 $htgroup->save;
+              $htgroup->save($file);
 
-    Need to add some reasonable tests in test.pl. Same excuse.
+         Writes the current contents of the htgroup object back to the file.
+         If you provide a $file argument, "save" will attempt to write to
+         that location.
 
-    Patches and suggestions welcome.
+    ismember
+                 $foo = $htgroup->ismember($user, $group);
+
+         Returns true if the username is in the group, false otherwise
+
+Internals
+         Although this was not the case in earlier versions, the internal
+         data structure of the object looks something like the following:
+
+          $obj = { groupfile => '/path/to/groupfile',
+                   groups => { group1 => { 'user1' => 1,
+                                           'user2' => 1, 
+                                           'user3' => 1
+                                         },
+                               group2 => { 'usera' => 1,
+                                           'userb' => 1, 
+                                           'userc' => 1
+                                         },
+                             }
+                 };
+
+         Note that this data structure is subject to change in the future,
+         and is provided mostly so that I can remember what the heck I was
+         thinking when I next have to look at this code.
+
+Adding groups
+         A number of folks have asked for a method to add a new group. This
+         is unnecessary. To add a new group, just start adding users to a
+         new group, and the new group will magically spring into existance.
+
+ToDo
+         Need to add a decent test suite, but apart from that, I think that
+         this is pretty good.
 
 AUTHOR
-    Rich Bowen, rbowen@rcbowen.com
+         Rich Bowen, rbowen@rcbowen.com
+
+HISTORY
+              $Log: README,v $
+              Revision 1.4  2001/02/21 03:14:04  rbowen
+              Fixed reload to work as advertised. groups now calls reload internally
+              the first time you call it.
+
+
+              Version 0.9 -> 1.10 contains a number of important changes.
+              As mentioned above, the API has changed, as well as the internal
+              data structure. Please read the documentation very carefully.
 

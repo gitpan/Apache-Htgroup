@@ -1,78 +1,4 @@
 package Apache::Htgroup;
-use strict;
-use vars qw($VERSION);
-$VERSION = '0.9';
-
-sub new	{
-	my ($class, $groupFile) = @_;
-	my ($self) = {};
-	bless ($self, $class);
-
-	$self->{'groupfile'} = $groupFile;
-	return $self;
-} # End sub new
-
-sub addUser	{
-	my ($self, $username, $groupname) = @_;
-	return(1) if $self->isMember($username, $groupname);
-	my ($line, $group, $groups);
-	
-	$groups = $self->groups;
-	$groups->{$groupname} .= " $username";
-	$self->writeFile($groups) || return(0);
-	return(1);
-} # End sub addUser
-
-sub deleteUser	{
-	my ($self, $username, $groupname) = @_;
-	return(0) unless $self->isMember($username, $groupname);
-	my ($groups);
-
-	$groups = $self->groups;
-	$groups->{$groupname} =~ s/ $username\b//;
-	$self->writeFile($groups) || return(0);
-	return(1);
-} # End sub deletUser
-
-sub groups {
-	my ($self) = @_;
-	my (%groups, $group, $members, $line);
-
-	open (FILE, $self->{'groupfile'}) || return(0);
-	while ($line = <FILE>)	{
-		chomp $line;
-		($group, $members) = split /:/,$line;
-		$groups{$group} = $members;
-	}
-	close FILE;
-	return (\%groups);
-} # End sub groups
-
-sub writeFile	{
-	my ($self, $groups) = @_;
-	my ($group);
-	open (FILE, ">$self->{'groupfile'}") || return(0);
-	for $group (keys %$groups)	{
-		print FILE "$group:$groups->{$group}\n";
-	}
-	close FILE;
-	return(1);
-} # End sub writeFile
-
-sub isMember	{
-	my ($self, $username, $groupname) = @_;
-	my ($groups);
-
-	$groups = $self->groups;
-	if ($groups->{$groupname} =~ / $username\b/)	{
-		return(1);
-	} else {
-		return(0);
-	}
-} # End sub isMember
-
-1;
-__END__
 
 =head1 NAME
 
@@ -81,76 +7,253 @@ Apache::Htgroup - Manage Apache authentication group files
 =head1 SYNOPSIS
 
   use Apache::Htgroup;
-  $group = new Apache::Htgroup ($path_to_groupfile);
-  $foo = $group->isMember($username);
-  $group->addUser($username);
-  $group->deleteUser($username);
+  $htgroup = Apache::Htgroup->load($path_to_groupfile);
+  &do_something if $htgroup->ismember($user, $group);
+  $htgroup->adduser($user, $group);
+  $htgroup->deleteuser($user, $group);
+  $htgroup->save;
+
+=head1 Important notes about versions 1.x
+
+There has been a change to the API since the 0.9 version. The 0.9
+version sucked a lot, and this should be a big improvement in a
+lot of ways. Please feel free to contact me and yell at me about
+these changes if you like. If there are enough complaints, I'll
+try to make it backward compatible. However, given a little work,
+I think you'll find the new version superior in every way.
 
 =head1 DESCRIPTION
 
 Manage Apache htgroup files
 
+Please note that this is I<not> a mod_perl module. Please also note
+that there is another module that does similar things
+(HTTPD::UserManage) and that this is a more simplistic module,
+not doing all the things that one does.
+
+Please also note that, in contrast to Version 0.9, changes
+to the object are only saved to disk when you call the
+C<save> method.
+
 =over 5
 
-=item new
+=cut
 
-	$group = new Apache::Htgroup ($path_to_groupfile);
+use strict;
+use vars qw($VERSION);
+$VERSION = qw($Revision: 1.11 $)[1];
 
-Creates a new object of the Apache::Htgroup class
+=item load
 
-=item isMember
+	$htgroup = Apache::Htgroup->load($path_to_groupfile);
+     $htgroup = Apache::Htgroup->new();
 
-	$foo = $group->isMember($username);
+Returns an Apache::Htgroup object.
 
-Returns true if the username is in the group, false otherwise
+Calling C<new()> without an argument creates an empty
+htgroup object which you can save to a file once you're
+done with it.
 
-=item addUser
+=cut
 
-	$group->addUser($username);
+sub new {return load(@_)}
 
-Adds the user to the group.
+sub load {
+	my ($class, $file) = @_;
+     my $self = bless {
+          groupfile => $file,
+          }, $class;
+     $self->groups;
 
-=item deleteUser
+	return $self;
+}
 
-	$group->deleteUser($username);
+=item adduser
+
+	$htgroup->adduser( $username, $group );
+
+Adds the specified user to the specified group.
+
+=cut
+
+sub adduser	{
+     my $self = shift;
+     my ( $user, $group ) = @_;
+
+	return(1) if $self->ismember($user, $group);
+     $self->{groups}->{$group}->{$user} = 1;
+
+	return(1);
+} 
+
+=item deleteuser
+
+	$htgroup->deleteuser($user, $group);
 
 Removes the specified user from the group.
 
+=cut
+
+sub deleteuser	{
+     my $self = shift;
+     my ($user, $group) = @_;
+
+     delete $self->{groups}->{$group}->{$user};
+	return(1);
+}
+
 =item groups
 
-	$groups = $group->groups;
+	$groups = $htgroup->groups;
 
-Returns a reference to a hash of the groups. The key is the name of the group,
-and the value is a string containing all the users separated by 
-spaces - exactly as it appears in the group file.
+Returns a (reference to a) hash of the groups. The key is the name
+of the group. Each value is a hashref, the keys of which are the
+group members. I suppose there may be some variety of members
+method in the future, if anyone thinks that would be useful.
 
-=item writeFile
+It is expected that this method will not be called directly, and
+it is provided as a convenience only. 
 
-	$group->writeFile($groups);
+Please see the section below about internals for an example
+of the data structure.
 
-Writes out the group file. $groups is a hashref that looks like the
-hash returned by the C<groups> method.
+=cut
 
-=back
+sub groups {
+	my $self = shift;
 
-=head1 Bugs/To do/Disclaimer
+     return $self->{groups} if defined $self->{groups};
 
-I wrote this in a real hurry. I knew that it would save time in the
-long run if I wrote this as a module, but I did not have the time to 
-put in all the doodads that really belong in here.
+     $self->reload;
 
-I really need to have some file locking here, but this is a rush job. I'll
-add this some time soon.
+	return $self->{groups};
+}
 
-Need to have reasonable return values on failure. I'll add this when
-I'm in less of a hurry.
+=item reload
 
-Need to add some reasonable tests in test.pl.  Same excuse.
+     $self->reload;
 
-Patches and suggestions welcome.
+If you have not already called save(), you can call reload()
+and get back to the state of the object as it was loaded from
+the original file.
+
+=cut
+
+sub reload {
+     my $self = shift;
+
+     if ($self->{groupfile})   {
+	
+          open (FILE, $self->{groupfile}) || die (
+               "Was unable to open group file $self->{groupfile}: $!" );
+	     while (my $line = <FILE>)	{
+		     chomp $line;
+     
+		     my ($group, $members) = split /:/,$line;
+     
+               foreach my $user ( split /\s+/, $line ) {
+                    $self->{groups}->{$group}->{$user} = 1;
+               }
+	     }
+          close FILE;
+
+     } else {
+          $self->{groups} = {};
+     }
+}
+
+=item save
+
+	$htgroup->save;
+     $htgroup->save($file);
+
+Writes the current contents of the htgroup object back to the
+file. If you provide a $file argument, C<save> will attempt to
+write to that location.
+
+=cut
+
+sub save {
+     my $self = shift;
+     my $file = shift || $self->{groupfile};
+
+	open (FILE, ">$file") || 
+          die ("Was unable to open $file for writing: $!");
+
+     foreach my $group ( keys %{$self->{groups}} )   {
+          my $members = join ' ', keys %{$self->{groups}->{$group}};
+		print FILE "$group:$members\n";
+	}
+	close FILE;
+
+	return(1);
+}
+
+=item ismember
+
+	$foo = $htgroup->ismember($user, $group);
+
+Returns true if the username is in the group, false otherwise
+
+=cut
+
+sub ismember	{
+     my $self = shift;
+	my ($user, $group) = @_;
+
+     return ($self->{groups}->{$group}->{$user}) ?  1 : 0 ;
+}
+
+1;
+
+=cut
+
+=head1 Internals
+
+Although this was not the case in earlier versions, the internal
+data structure of the object looks something like the following:
+
+ $obj = { groupfile => '/path/to/groupfile',
+          groups => { group1 => { 'user1' => 1,
+                                  'user2' => 1, 
+                                  'user3' => 1
+                                },
+                      group2 => { 'usera' => 1,
+                                  'userb' => 1, 
+                                  'userc' => 1
+                                },
+                    }
+        };
+
+Note that this data structure is subject to change in the future,
+and is provided mostly so that I can remember what the heck I was
+thinking when I next have to look at this code.
+
+=head1 Adding groups
+
+A number of folks have asked for a method to add a new group. This
+is unnecessary. To add a new group, just start adding users to 
+a new group, and the new group will magically spring into existance.
+
+=head1 ToDo
+
+Need to add a decent test suite, but apart from that, I think that
+this is pretty good.
 
 =head1 AUTHOR
 
 Rich Bowen, rbowen@rcbowen.com
+
+=head1 HISTORY
+
+     $Log: Htgroup.pm,v $
+     Revision 1.11  2001/02/21 03:14:04  rbowen
+     Fixed reload to work as advertised. groups now calls reload internally
+     the first time you call it.
+
+
+     Version 0.9 -> 1.10 contains a number of important changes.
+     As mentioned above, the API has changed, as well as the internal
+     data structure. Please read the documentation very carefully.
 
 =cut
