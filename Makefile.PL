@@ -2,6 +2,8 @@ use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(
-    'NAME'	=> 'Apache::Htgroup',
-    'VERSION_FROM' => 'Htgroup.pm', # finds $VERSION
+    NAME	     => 'Apache::Htgroup',
+    VERSION_FROM => 'Htgroup.pm', # finds $VERSION
+    AUTHOR       => 'Rich Bowen (rbowen@rcbowencom)',
+    ABSTRACT     => 'Manage Apache htgroup files'
 );

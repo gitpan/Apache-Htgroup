@@ -2,6 +2,7 @@ MANIFEST
 README
 Htgroup.pm
 Makefile.PL
+LICENSE
 
 t/00load.t
 t/01basic.t

@@ -1,4 +1,4 @@
-#$Header: /home/cvs/apache-htgroup/Htgroup.pm,v 1.17 2001/07/12 02:37:18 rbowen Exp $
+#$Header: /home/cvs/apache-htgroup/Htgroup.pm,v 1.18 2001/08/02 02:47:23 rbowen Exp $
 package Apache::Htgroup;
 
 =head1 NAME
@@ -29,7 +29,7 @@ not doing all the things that one does.
 
 use strict;
 use vars qw($VERSION);
-$VERSION = (qw($Revision: 1.17 $))[1];
+$VERSION = (qw($Revision: 1.18 $))[1];
 
 =item load
 
@@ -229,18 +229,25 @@ A number of folks have asked for a method to add a new group. This
 is unnecessary. To add a new group, just start adding users to 
 a new group, and the new group will magically spring into existance.
 
-=head1 ToDo
-
-Need to add a decent test suite, but apart from that, I think that
-this is pretty good.
-
 =head1 AUTHOR
 
 Rich Bowen, rbowen@rcbowen.com
 
+=head1 COPYRIGHT
+
+Copyright (c) 2001 Rich Bowen. All rights reserved.
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
 =head1 HISTORY
 
      $Log: Htgroup.pm,v $
+     Revision 1.18  2001/08/02 02:47:23  rbowen
+     Added LICENSE.
+
      Revision 1.17  2001/07/12 02:37:18  rbowen
      Patch from Ben Tilly in order to compensate for the fact that Apache
      does not like group lists that run over 8k, but is ok with breaking a

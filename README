@@ -95,27 +95,27 @@ Adding groups
          is unnecessary. To add a new group, just start adding users to a
          new group, and the new group will magically spring into existance.
 
-ToDo
-         Need to add a decent test suite, but apart from that, I think that
-         this is pretty good.
-
 AUTHOR
          Rich Bowen, rbowen@rcbowen.com
 
+COPYRIGHT
+         Copyright (c) 2001 Rich Bowen. All rights reserved. This program is
+         free software; you can redistribute it and/or modify it under the
+         same terms as Perl itself.
+
+         The full text of the license can be found in the LICENSE file
+         included with this module.
+
 HISTORY
-              $Log: Htgroup.pm,v $
+              $Log: README,v $
+              Revision 1.8  2001/08/02 02:47:23  rbowen
+              Added LICENSE.
+
               Revision 1.17  2001/07/12 02:37:18  rbowen
               Patch from Ben Tilly in order to compensate for the fact that Apache
               does not like group lists that run over 8k, but is ok with breaking a
               group listing over several lines. Long lines are split over several
               lines.
-
-              Revision 1.16  2001/07/12 02:19:58  rbowen
-              Doc changes. Regenerated README. Removed test.pl since there's a
-              decent test suite.
-
-              Revision 1.15  2001/07/12 02:15:01  rbowen
-              Perltidy
 
               Revision 1.14  2001/02/24 21:27:50  rbowen
               Added space between "group:" and the first user, as per the documentation.
