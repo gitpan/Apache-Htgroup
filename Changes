@@ -1,0 +1,11 @@
+Revision history for Perl extension Apache::Htgroup.
+
+0.01  Sat Dec 18 22:22:09 1999
+	- original version; created by h2xs 1.19
+
+... several versions in between here ...
+
+0.09  Dec 19 1999
+	- Initial release to CPAN, in the hopes that
+	someone else might find a use for this.
+
