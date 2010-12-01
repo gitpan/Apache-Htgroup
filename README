@@ -7,6 +7,7 @@ SYNOPSIS
       &do_something if $htgroup->ismember($user, $group);
       $htgroup->adduser($user, $group);
       $htgroup->deleteuser($user, $group);
+      $htgroup->deletegroup( $group );
       $htgroup->save;
 
 DESCRIPTION
@@ -18,17 +19,14 @@ DESCRIPTION
     does.
 
   METHODS
-
     The following methods are provided by this module.
 
   load
-
         $htgroup = Apache::Htgroup->load($path_to_groupfile);
 
     Returns an Apache::Htgroup object.
 
   new
-
         $htgroup = Apache::Htgroup->new();
         $htgroup = Apache::Htgroup->new( $path_to_groupfile );
 
@@ -37,19 +35,16 @@ DESCRIPTION
     create a group file in memory, and save it later.
 
   adduser
-
         $htgroup->adduser( $username, $group );
 
     Adds the specified user to the specified group.
 
   deleteuser
-
         $htgroup->deleteuser($user, $group);
 
     Removes the specified user from the group.
 
   groups
-
         $groups = $htgroup->groups;
 
     Returns a (reference to a) hash of the groups. The key is the name of
@@ -64,14 +59,18 @@ DESCRIPTION
     structure.
 
   reload
-
          $self->reload;
 
     If you have not already called save(), you can call reload() and get
     back to the state of the object as it was loaded from the original file.
 
-  save
+  deletegroup
+        $self->deletegroup( 'GroupName' );
 
+    Removes a group from the htgroup file. You will need to call save
+    afterward to commit this change back to the file.
+
+  save
         $htgroup->save;
         $htgroup->save($file);
 
@@ -80,7 +79,6 @@ DESCRIPTION
     location.
 
   ismember
-
         $foo = $htgroup->ismember($user, $group);
 
     Returns true if the username is in the group, false otherwise

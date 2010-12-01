@@ -1,4 +1,3 @@
-#$Header: /home/cvs/apache-htgroup/lib/Apache/Htgroup.pm,v 1.22 2002/01/27 16:04:34 rbowen Exp $
 package Apache::Htgroup;
 
 =head1 NAME
@@ -12,6 +11,7 @@ Apache::Htgroup - Manage Apache authentication group files
   &do_something if $htgroup->ismember($user, $group);
   $htgroup->adduser($user, $group);
   $htgroup->deleteuser($user, $group);
+  $htgroup->deletegroup( $group );
   $htgroup->save;
 
 =head1 DESCRIPTION
@@ -31,7 +31,7 @@ The following methods are provided by this module.
 
 use strict;
 use vars qw($VERSION);
-$VERSION = (qw($Revision: 1.22 $))[1];
+$VERSION = (qw($Revision: 1.23 $))[1];
 
 # sub new, load {{{
 
@@ -179,6 +179,26 @@ sub reload {
       } else {
         $self->{groups} = {};
     }
+} # }}}
+
+# sub deletegroup {{{
+
+=head2 deletegroup
+
+    $self->deletegroup( 'GroupName' );
+
+Removes a group from the htgroup file. You will need to call save 
+afterward to commit this change back to the file.
+
+=cut
+
+sub deletegroup {
+   my $self = shift;
+   my ( $group ) = @_;
+   if ( exists $self->{groups}->{$group} ) {
+       delete $self->{groups}->{$group};
+   }
+   return (1);
 } # }}}
 
 # sub save {{{
